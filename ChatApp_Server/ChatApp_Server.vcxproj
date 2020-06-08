@@ -150,6 +150,7 @@
     <ClCompile Include="Source\stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Client.h" />
     <ClInclude Include="Source\Server.h" />
     <ClInclude Include="Source\stdafx.h" />
   </ItemGroup>

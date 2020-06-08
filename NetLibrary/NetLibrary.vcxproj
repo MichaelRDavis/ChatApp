@@ -116,6 +116,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -130,6 +131,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -140,9 +142,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Source\Socket.h" />
+    <ClInclude Include="Source\SocketAddress.h" />
+    <ClInclude Include="Source\stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Socket.cpp" />
+    <ClCompile Include="Source\SocketAddress.cpp" />
+    <ClCompile Include="Source\stadfx.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

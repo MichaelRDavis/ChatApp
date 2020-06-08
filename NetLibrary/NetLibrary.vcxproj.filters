@@ -18,9 +18,21 @@
     <ClInclude Include="Source\Socket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\SocketAddress.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Socket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\SocketAddress.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\stadfx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

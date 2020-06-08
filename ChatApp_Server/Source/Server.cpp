@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Server.h"
+#include "Client.h"
 
 CServer::CServer()
 {
@@ -37,6 +38,8 @@ void CServer::Init()
 	Bind();
 	Listen();
 
+	InSockets.push_back(ServerSocket);
+
 	bCanRun = true;
 }
 
@@ -51,12 +54,15 @@ void CServer::Run()
 		if (ClientSocket != INVALID_SOCKET)
 		{
 			std::cout << "Client connected to server" << std::endl;
+			HandleNewClient(ClientSocket, ClientAddress);
+
 			memset(Buffer, 0, sizeof(Buffer));
 			recv(ClientSocket, Buffer, sizeof(Buffer), 0);
 			std::cout << "Client message: " << Buffer << std::endl;
 
 			std::string Message = "Server: ";
 			Message += Buffer;
+			HandleClientMessage(Buffer);
 
 			memcpy(Buffer, Message.c_str(), Message.length());
 
@@ -102,4 +108,35 @@ SOCKET CServer::Accept()
 	}
 
 	return NewSocket;
+}
+
+void CServer::Select()
+{
+	
+}
+
+void CServer::HandleNewClient(SOCKET InClientSocket, SOCKADDR_IN InClientAddress)
+{
+	SClient NewClient;
+	NewClient.Socket = InClientSocket;
+	NewClient.Address = InClientAddress;
+	NewClient.UniqueID = NewClient.GenerateID();
+
+	// Get the clients name
+	char Buffer[1024];
+	std::string ServerMessage = "Insert your name: ";
+	memcpy(Buffer, ServerMessage.c_str(), ServerMessage.length());
+	send(ClientSocket, Buffer, sizeof(Buffer), 0);
+
+	memset(Buffer, 0, sizeof(Buffer));
+	recv(ClientSocket, Buffer, sizeof(Buffer), 0);
+
+	NewClient.Name = Buffer;
+	std::string HelloMessage = "Hello, " + NewClient.Name;
+	send(ClientSocket, Buffer, sizeof(Buffer), 0);
+}
+
+void CServer::HandleClientMessage(const char* InBuffer)
+{
+	
 }
