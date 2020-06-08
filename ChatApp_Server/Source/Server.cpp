@@ -52,6 +52,15 @@ void CServer::Run()
 		{
 			std::cout << "Client connected to server" << std::endl;
 			memset(Buffer, 0, sizeof(Buffer));
+			recv(ClientSocket, Buffer, sizeof(Buffer), 0);
+			std::cout << "Client message: " << Buffer << std::endl;
+
+			std::string Message = "Server: ";
+			Message += Buffer;
+
+			memcpy(Buffer, Message.c_str(), Message.length());
+
+			send(ClientSocket, Buffer, sizeof(Buffer), 0);
 		}
 	}
 }

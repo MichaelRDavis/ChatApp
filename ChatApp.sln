@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChatApp_Server", "ChatApp_S
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChatApp_Client", "ChatApp_Client\ChatApp_Client.vcxproj", "{E77D50CA-96E0-4B3E-8DD3-4D90301A9D42}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NetLibrary", "NetLibrary\NetLibrary.vcxproj", "{AB2085C5-89FA-491B-AD7A-65210A0742D2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{E77D50CA-96E0-4B3E-8DD3-4D90301A9D42}.Release|x64.Build.0 = Release|x64
 		{E77D50CA-96E0-4B3E-8DD3-4D90301A9D42}.Release|x86.ActiveCfg = Release|Win32
 		{E77D50CA-96E0-4B3E-8DD3-4D90301A9D42}.Release|x86.Build.0 = Release|Win32
+		{AB2085C5-89FA-491B-AD7A-65210A0742D2}.Debug|x64.ActiveCfg = Debug|x64
+		{AB2085C5-89FA-491B-AD7A-65210A0742D2}.Debug|x64.Build.0 = Debug|x64
+		{AB2085C5-89FA-491B-AD7A-65210A0742D2}.Debug|x86.ActiveCfg = Debug|Win32
+		{AB2085C5-89FA-491B-AD7A-65210A0742D2}.Debug|x86.Build.0 = Debug|Win32
+		{AB2085C5-89FA-491B-AD7A-65210A0742D2}.Release|x64.ActiveCfg = Release|x64
+		{AB2085C5-89FA-491B-AD7A-65210A0742D2}.Release|x64.Build.0 = Release|x64
+		{AB2085C5-89FA-491B-AD7A-65210A0742D2}.Release|x86.ActiveCfg = Release|Win32
+		{AB2085C5-89FA-491B-AD7A-65210A0742D2}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
