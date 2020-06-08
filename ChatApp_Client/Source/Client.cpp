@@ -32,7 +32,7 @@ void CClient::Init()
 	}
 
 	Connect();
-	std::cout << "Connected to Server" << std::endl;
+	GetUserName();
 	bIsConnected = true;
 }
 
@@ -48,10 +48,7 @@ void CClient::Run()
 		memcpy(Buffer, Message.c_str(), Message.length());
 
 		send(ClientSocket, Message.c_str(), (int32_t)Message.length(), 0);
-		std::cout << "Message sent" << std::endl;
-
 		recv(ClientSocket, Buffer, sizeof(Buffer), 0);
-		std::cout << "Server: " << Buffer << std::endl;
 	}
 }
 
@@ -69,5 +66,34 @@ void CClient::Connect()
 	if (Result != 0)
 	{
 		spdlog::error("connect failed with error : {}", WSAGetLastError());
+	}
+}
+
+void CClient::GetUserName()
+{
+	std::cout << "Insert your name: " << std::endl;
+
+	char Buffer[1024];
+	memset(Buffer, 0, sizeof(Buffer));
+
+	std::string Username;
+	getline(std::cin, Username);
+	memcpy(Buffer, Username.c_str(), Username.length());
+
+	send(ClientSocket, Username.c_str(), (int32_t)Username.length(), 0);
+}
+
+void CClient::GetLocalInput()
+{
+	std::string Command;
+
+	while (bIsConnected)
+	{
+		if (strcmp(Command.c_str(), "@quit") == 0)
+		{
+			bIsConnected = false;
+			std::cout << "Disconnected from server" << std::endl;
+			break;
+		}
 	}
 }

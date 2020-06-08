@@ -14,6 +14,10 @@ private:
 	void InitLog();
 
 	void Connect();
+
+	void GetUserName();
+
+	void GetLocalInput();
 	
 private:
 	WSADATA Data;
