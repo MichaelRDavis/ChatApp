@@ -4,7 +4,6 @@
 CServer::CServer()
 {
 	ServerSocket = INVALID_SOCKET;
-	ClientSocket = INVALID_SOCKET;
 	Port = 1234;
 	bCanRun = false;
 }
@@ -44,15 +43,27 @@ void CServer::Run()
 {
 	while (bCanRun)
 	{
-		char Buffer[1024];
-		ClientSocket = Accept();
-		if (ClientSocket != INVALID_SOCKET)
+		std::cout << "Listen for incoming connections" << std::endl;
+		SOCKET NewSocket = Accept();
+		if (NewSocket != INVALID_SOCKET)
 		{
-			memset(Buffer, 0, sizeof(Buffer));
-			recv(ClientSocket, Buffer, sizeof(Buffer), 0);
-			send(ClientSocket, Buffer, sizeof(Buffer), 0);
+			OnConnected(NewSocket);
+			GetMessages(NewSocket);
 		}
+
+		GetUserInput();
 	}
+
+	std::cout << "Shutting down server" << std::endl;
+
+	for (auto Client : ClientMap)
+	{
+		SendMessageToClient(Client.first, "Server is shutting down. Bye.");
+		closesocket(Client.first);
+	}
+
+	ClientMap.clear();
+	closesocket(ServerSocket);
 }
 
 void CServer::LogInit()
@@ -94,35 +105,86 @@ SOCKET CServer::Accept()
 	return NewSocket;
 }
 
-void CServer::Select()
+void CServer::Send(SOCKET InSocket, const char* InBuffer)
 {
-	
+	int32_t Result = send(InSocket, InBuffer, sizeof(InBuffer), 0);
+	if (Result != 0)
+	{
+		spdlog::error("send failed with error : {}", WSAGetLastError());
+	}
+}
+
+void CServer::Receive(SOCKET InSocket, const char* Buffer)
+{
+	int32_t Result = recv(InSocket, (char*)Buffer, sizeof(Buffer), 0);
+	if (Result != 0)
+	{
+		spdlog::error("recv failed with error : {}", WSAGetLastError());
+	}
 }
 
 void CServer::GetUserInput()
 {
 	std::string Command;
-
-	while (bCanRun)
+	getline(std::cin, Command);
+	if (strcmp(Command.c_str(), "@quit") == 0)
 	{
-		
+		bCanRun = false;
+		std::cout << "Shutdown server" << std::endl;
 	}
 }
 
-void CServer::GetMessages()
+void CServer::GetMessages(SOCKET InSocket)
 {
-	while (bCanRun)
+	char Buffer[1024];
+	memset(Buffer, 0, sizeof(Buffer));
+	recv(InSocket, Buffer, sizeof(Buffer), 0);
+
+	std::string Command;
+	Command = Buffer;
+	if (strcmp(Command.c_str(), "@set_username") == 0)
 	{
-		
+		// Change the users name
+	}
+
+	SendMessageToAllClients(Buffer);
+}
+
+void CServer::SendMessageToAllClients(const char* InBuffer)
+{
+	for (auto& Client : ClientMap)
+	{
+		Send(Client.first, InBuffer);
 	}
 }
 
-void CServer::SendMessage()
+void CServer::SendMessageToClient(SOCKET InSocket, const char* InBuffer)
 {
-	
+	Send(InSocket, InBuffer);
 }
 
-void CServer::AddClient(SOCKET InSocket, const char* Username)
+void CServer::AddClient(SOCKET& InSocket, const char* Username)
 {
+	ClientMap[InSocket];
 	ClientMap[InSocket].Name = Username;
+}
+
+void CServer::OnConnected(SOCKET InSocket)
+{
+	// Check for a new connection
+	if (ClientMap.find(InSocket) == ClientMap.end())
+	{
+		std::cout << "Client connected to server" << std::endl;
+
+		// Generate a user name
+		char Buffer[1024];
+		memset(Buffer, 0, sizeof(Buffer));
+
+		std::string Username = "JohnSmith";
+		AddClient(InSocket, Username.c_str());
+
+		std::string WelcomeMessage = "Hello";
+		memcpy(Buffer, Username.c_str(), Username.length());
+		SendMessageToClient(InSocket, Buffer);
+	}
 }

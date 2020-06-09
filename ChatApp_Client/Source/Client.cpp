@@ -32,7 +32,7 @@ void CClient::Init()
 	}
 
 	Connect();
-	GetUserName();
+	std::cout << "Connected to server" << std::endl;
 	bIsConnected = true;
 }
 
@@ -42,6 +42,7 @@ void CClient::Run()
 	{
 		char Buffer[1024];
 		memset(Buffer, 0, sizeof(Buffer));
+		recv(ClientSocket, Buffer, sizeof(Buffer), 0);
 
 		std::string Message;
 		getline(std::cin, Message);
@@ -67,20 +68,6 @@ void CClient::Connect()
 	{
 		spdlog::error("connect failed with error : {}", WSAGetLastError());
 	}
-}
-
-void CClient::GetUserName()
-{
-	std::cout << "Insert your name: " << std::endl;
-
-	char Buffer[1024];
-	memset(Buffer, 0, sizeof(Buffer));
-
-	std::string Username;
-	getline(std::cin, Username);
-	memcpy(Buffer, Username.c_str(), Username.length());
-
-	send(ClientSocket, Username.c_str(), (int32_t)Username.length(), 0);
 }
 
 void CClient::GetLocalInput()

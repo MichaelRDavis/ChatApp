@@ -15,8 +15,6 @@ private:
 
 	void Connect();
 
-	void GetUserName();
-
 	void GetLocalInput();
 	
 private:

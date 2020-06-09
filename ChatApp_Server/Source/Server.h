@@ -1,22 +1,5 @@
 #pragma once
 
-//// Non-blocking user input via threads
-//std::mutex UserInput;
-//std::thread* UserInputThread;
-//std::queue<std::string> MessageQueue;
-//bool bCanQuit = false;
-//
-//void GetLocalUserInput()
-//{
-//	UserInputThread = new std::thread([]()
-//	{
-//		while (bCanQuit)
-//		{
-//			char Buffer[1024];
-//		}
-//	});
-//} 
-
 /**
  * The clients data storage, we store all of the clients data within this struct
  */
@@ -47,29 +30,66 @@ private:
 	/** Initialize useful debugging tools, prints error messages to the console and to a log file */
 	void LogInit();
 
+	// WinSock API Wrapper functions
+
+	/** Binds the server socket to an address */
 	void Bind();
 
+	/** Sets the socket to listen for incoming client connections */
 	void Listen();
 
+	/** Accept an incoming client connection */
 	SOCKET Accept();
 
-	void Select();
+	/** Sends data to a connected socket */
+	void Send(SOCKET InSocket, const char* Buffer);
 
+	/** Receives data from a connection */
+	void Receive(SOCKET InSocket, const char* Buffer);
+
+	// Chat console application protocol functions
+
+	/** Enables local user input, polls every CPU tick */
 	void GetUserInput();
 
-	void GetMessages();
+	/** Get messages sent to the server */
+	void GetMessages(SOCKET InSocket);
 
-	void SendMessage();
+	/** Sends messages to all clients connected on this server */
+	void SendMessageToAllClients(const char* InBuffer);
 
-	void AddClient(SOCKET InSocket, const char* Username);
+	/** Send a message to a specific client connected to this server */
+	void SendMessageToClient(SOCKET InSocket, const char* InBuffer);
+
+	/** Add a client to the map when they connect to his server */
+	void AddClient(SOCKET& InSocket, const char* Username);
+
+	/** Called when a client connects to this server */
+	void OnConnected(SOCKET Socket);
 
 private:
+	// Winsock API Wrapper variables
+
+	/** WinSock API data */
 	WSADATA Data;
+
+	/** The server socket */
 	SOCKET ServerSocket;
-	SOCKET ClientSocket;
+
+	/** The server address */
 	SOCKADDR_IN ServerAddress;
+
+	/** The client address */
 	SOCKADDR_IN ClientAddress;
+
+	/** The servers port number */
 	uint16_t Port;
-	bool bCanRun;
+
+	// Chat console application protocol variables
+
+	/** Map of client connections */
 	std::map<SOCKET, SClient> ClientMap;
+
+	/** True if server loop can run */
+	bool bCanRun;
 };
