@@ -47,6 +47,8 @@ private:
 	/** Receives data from a connection */
 	void Receive(SOCKET InSocket, const char* Buffer);
 
+	void SetNonBlocking(SOCKET InSocket, bool bShouldBlock);
+
 	// Chat console application protocol functions
 
 	/** Enables local user input, polls every CPU tick */

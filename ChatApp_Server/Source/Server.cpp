@@ -33,6 +33,8 @@ void CServer::Init()
 		spdlog::error("socket failed with error : {}", WSAGetLastError());
 	}
 
+	SetNonBlocking(ServerSocket, true);
+
 	Bind();
 	Listen();
 
@@ -48,20 +50,22 @@ void CServer::Run()
 		SOCKET NewSocket = Accept();
 		if (NewSocket != INVALID_SOCKET)
 		{
-			memset(Buffer, 0, sizeof(Buffer));
-			std::cout << "Client connected!" << std::endl;
-			recv(NewSocket, Buffer, sizeof(Buffer), 0);
-			std::cout << "Client Says: " << Buffer << std::endl;
+			SetNonBlocking(NewSocket, true);
 
-			std::string ResponceText = "Hello ";
-			ResponceText += Buffer;
+			//memset(Buffer, 0, sizeof(Buffer));
+			//std::cout << "Client connected!" << std::endl;
+			//recv(NewSocket, Buffer, sizeof(Buffer), 0);
+			//std::cout << "Client Says: " << Buffer << std::endl;
 
-			memcpy(Buffer, ResponceText.c_str(), ResponceText.length());
+			//std::string ResponceText = "Hello ";
+			//ResponceText += Buffer;
 
-			send(NewSocket, Buffer, sizeof(Buffer), 0);
-			//OnConnected(NewSocket);
-			//GetMessages(NewSocket);
-			//GetUserInput();
+			//memcpy(Buffer, ResponceText.c_str(), ResponceText.length());
+
+			//send(NewSocket, Buffer, sizeof(Buffer), 0);
+			OnConnected(NewSocket);
+			GetMessages(NewSocket);
+			GetUserInput();
 		}
 	}
 
@@ -131,6 +135,16 @@ void CServer::Receive(SOCKET InSocket, const char* Buffer)
 	if (Result != 0)
 	{
 		spdlog::error("recv failed with error : {}", WSAGetLastError());
+	}
+}
+
+void CServer::SetNonBlocking(SOCKET InSocket, bool bShouldBlock)
+{
+	u_long bBlock = bShouldBlock ? 1 : 0;
+	int32_t Result = ioctlsocket(InSocket, FIONBIO, &bBlock);
+	if (Result != 0)
+	{
+		spdlog::error("ioctlsocket failed with error : {}", WSAGetLastError());
 	}
 }
 
