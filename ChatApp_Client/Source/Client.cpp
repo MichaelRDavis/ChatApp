@@ -42,7 +42,6 @@ void CClient::Run()
 	{
 		char Buffer[1024];
 		memset(Buffer, 0, sizeof(Buffer));
-		recv(ClientSocket, Buffer, sizeof(Buffer), 0);
 
 		std::string Message;
 		getline(std::cin, Message);

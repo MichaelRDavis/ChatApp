@@ -43,15 +43,26 @@ void CServer::Run()
 {
 	while (bCanRun)
 	{
+		char Buffer[1024];
 		std::cout << "Listen for incoming connections" << std::endl;
 		SOCKET NewSocket = Accept();
 		if (NewSocket != INVALID_SOCKET)
 		{
-			OnConnected(NewSocket);
-			GetMessages(NewSocket);
-		}
+			memset(Buffer, 0, sizeof(Buffer));
+			std::cout << "Client connected!" << std::endl;
+			recv(NewSocket, Buffer, sizeof(Buffer), 0);
+			std::cout << "Client Says: " << Buffer << std::endl;
 
-		GetUserInput();
+			std::string ResponceText = "Hello ";
+			ResponceText += Buffer;
+
+			memcpy(Buffer, ResponceText.c_str(), ResponceText.length());
+
+			send(NewSocket, Buffer, sizeof(Buffer), 0);
+			//OnConnected(NewSocket);
+			//GetMessages(NewSocket);
+			//GetUserInput();
+		}
 	}
 
 	std::cout << "Shutting down server" << std::endl;
@@ -145,6 +156,7 @@ void CServer::GetMessages(SOCKET InSocket)
 	if (strcmp(Command.c_str(), "@set_username") == 0)
 	{
 		// Change the users name
+		SetUsername(InSocket, Buffer);
 	}
 
 	SendMessageToAllClients(Buffer);
@@ -167,6 +179,11 @@ void CServer::AddClient(SOCKET& InSocket, const char* Username)
 {
 	ClientMap[InSocket];
 	ClientMap[InSocket].Name = Username;
+}
+
+void CServer::SetUsername(SOCKET Socket, const char* Username)
+{
+	ClientMap[Socket].Name = Username;
 }
 
 void CServer::OnConnected(SOCKET InSocket)

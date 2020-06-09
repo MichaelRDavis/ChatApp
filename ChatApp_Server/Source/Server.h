@@ -64,6 +64,9 @@ private:
 	/** Add a client to the map when they connect to his server */
 	void AddClient(SOCKET& InSocket, const char* Username);
 
+	/** Set the client username */
+	void SetUsername(SOCKET Socket, const char* Username);
+
 	/** Called when a client connects to this server */
 	void OnConnected(SOCKET Socket);
 
