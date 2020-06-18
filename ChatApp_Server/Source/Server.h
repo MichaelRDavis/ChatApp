@@ -45,7 +45,7 @@ private:
 	void Send(SOCKET InSocket, const char* Buffer);
 
 	/** Receives data from a connection */
-	void Receive(SOCKET InSocket, const char* Buffer);
+	int32_t Receive(SOCKET InSocket, const char* Buffer);
 
 	void SetNonBlocking(SOCKET InSocket, bool bShouldBlock);
 
@@ -86,6 +86,9 @@ private:
 
 	/** The client address */
 	SOCKADDR_IN ClientAddress;
+
+	/** The server set */
+	fd_set ServerSet;
 
 	/** The servers port number */
 	uint16_t Port;

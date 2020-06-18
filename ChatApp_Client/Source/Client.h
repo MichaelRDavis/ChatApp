@@ -15,7 +15,7 @@ private:
 
 	void Connect();
 
-	void GetLocalInput();
+	void GetLocalInput(std::string InCommand);
 	
 private:
 	WSADATA Data;

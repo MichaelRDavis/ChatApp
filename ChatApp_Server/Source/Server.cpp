@@ -38,6 +38,9 @@ void CServer::Init()
 	Bind();
 	Listen();
 
+	FD_ZERO(&ServerSet);
+	FD_SET(ServerSocket, &ServerSet);
+
 	bCanRun = true;
 }
 
@@ -45,28 +48,33 @@ void CServer::Run()
 {
 	while (bCanRun)
 	{
-		char Buffer[1024];
 		std::cout << "Listen for incoming connections" << std::endl;
-		SOCKET NewSocket = Accept();
-		if (NewSocket != INVALID_SOCKET)
+
+		int32_t NumSockets = select(0, &ServerSet, nullptr, nullptr, nullptr);
+		for (int32_t i = 0; i < NumSockets; i++)
 		{
-			SetNonBlocking(NewSocket, true);
-
-			//memset(Buffer, 0, sizeof(Buffer));
-			//std::cout << "Client connected!" << std::endl;
-			//recv(NewSocket, Buffer, sizeof(Buffer), 0);
-			//std::cout << "Client Says: " << Buffer << std::endl;
-
-			//std::string ResponceText = "Hello ";
-			//ResponceText += Buffer;
-
-			//memcpy(Buffer, ResponceText.c_str(), ResponceText.length());
-
-			//send(NewSocket, Buffer, sizeof(Buffer), 0);
-			OnConnected(NewSocket);
-			GetMessages(NewSocket);
-			GetUserInput();
+			SOCKET InSocket = ServerSet.fd_array[i];
+			if (InSocket == ServerSocket)
+			{
+				SOCKET ClientSocket = accept(ServerSocket, nullptr, nullptr);
+				if (ClientSocket != INVALID_SOCKET)
+				{
+					OnConnected(ClientSocket);
+				}
+			}
+			else
+			{
+				GetMessages(InSocket);
+			}
 		}
+
+		//SOCKET NewSocket = Accept();
+		//if (NewSocket != INVALID_SOCKET)
+		//{
+		//	OnConnected(NewSocket);
+		//	GetMessages(NewSocket);
+		//	GetUserInput();
+		//}
 	}
 
 	std::cout << "Shutting down server" << std::endl;
@@ -129,13 +137,15 @@ void CServer::Send(SOCKET InSocket, const char* InBuffer)
 	}
 }
 
-void CServer::Receive(SOCKET InSocket, const char* Buffer)
+int32_t CServer::Receive(SOCKET InSocket, const char* Buffer)
 {
 	int32_t Result = recv(InSocket, (char*)Buffer, sizeof(Buffer), 0);
 	if (Result != 0)
 	{
 		spdlog::error("recv failed with error : {}", WSAGetLastError());
 	}
+
+	return Result;
 }
 
 void CServer::SetNonBlocking(SOCKET InSocket, bool bShouldBlock)
@@ -163,17 +173,34 @@ void CServer::GetMessages(SOCKET InSocket)
 {
 	char Buffer[1024];
 	memset(Buffer, 0, sizeof(Buffer));
-	recv(InSocket, Buffer, sizeof(Buffer), 0);
-
-	std::string Command;
-	Command = Buffer;
-	if (strcmp(Command.c_str(), "@set_username") == 0)
+	int32_t Bytes = Receive(InSocket, Buffer);
+	if (Bytes <= 0)
 	{
-		// Change the users name
-		SetUsername(InSocket, Buffer);
+		closesocket(InSocket);
+		FD_CLR(InSocket, &ServerSet);
 	}
+	else
+	{
+		for (int32_t i = 0; i < ServerSet.fd_count; i++)
+		{
+			SOCKET OutSocket = ServerSet.fd_array[i];
+			if (OutSocket != ServerSocket && OutSocket != InSocket)
+			{
+				std::string Command;
+				Command = Buffer;
+				if (strcmp(Command.c_str(), "@set_username") == 0)
+				{
+					// Change the users name
+					SetUsername(InSocket, Buffer);
+				}
 
-	SendMessageToAllClients(Buffer);
+				for (auto& Client : ClientMap)
+				{
+					send(OutSocket, Buffer, Bytes, 0);
+				}
+			}
+		}
+	}
 }
 
 void CServer::SendMessageToAllClients(const char* InBuffer)
@@ -207,15 +234,9 @@ void CServer::OnConnected(SOCKET InSocket)
 	{
 		std::cout << "Client connected to server" << std::endl;
 
-		// Generate a user name
-		char Buffer[1024];
-		memset(Buffer, 0, sizeof(Buffer));
-
 		std::string Username = "JohnSmith";
 		AddClient(InSocket, Username.c_str());
-
-		std::string WelcomeMessage = "Hello";
-		memcpy(Buffer, Username.c_str(), Username.length());
-		SendMessageToClient(InSocket, Buffer);
+		std::string WelcomeMessage = "Hello " + Username;
+		SendMessageToClient(InSocket, WelcomeMessage.c_str());
 	}
 }

@@ -42,13 +42,21 @@ void CClient::Run()
 	{
 		char Buffer[1024];
 		memset(Buffer, 0, sizeof(Buffer));
-
 		std::string Message;
-		getline(std::cin, Message);
-		memcpy(Buffer, Message.c_str(), Message.length());
 
-		send(ClientSocket, Message.c_str(), (int32_t)Message.length(), 0);
-		recv(ClientSocket, Buffer, sizeof(Buffer), 0);
+		std::cout << ">";
+		getline(std::cin, Message);
+		if (Message.size() > 0)
+		{
+			GetLocalInput(Message);
+			send(ClientSocket, Message.c_str(), (int32_t)Message.length(), 0);
+		}
+
+		int32_t Bytes = recv(ClientSocket, Buffer, sizeof(Buffer), 0);
+		if (Bytes > 0)
+		{
+			std::cout << "Server: " << std::string(Buffer, 0, Bytes) << std::endl;
+		}
 	}
 }
 
@@ -69,17 +77,11 @@ void CClient::Connect()
 	}
 }
 
-void CClient::GetLocalInput()
+void CClient::GetLocalInput(std::string InCommand)
 {
-	std::string Command;
-
-	while (bIsConnected)
+	if (strcmp(InCommand.c_str(), "@quit") == 0)
 	{
-		if (strcmp(Command.c_str(), "@quit") == 0)
-		{
-			bIsConnected = false;
-			std::cout << "Disconnected from server" << std::endl;
-			break;
-		}
+		std::cout << "Disconnected from server" << std::endl;
+		bIsConnected = false;
 	}
 }
