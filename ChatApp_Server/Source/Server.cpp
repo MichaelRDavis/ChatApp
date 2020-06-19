@@ -33,7 +33,7 @@ void CServer::Init()
 		spdlog::error("socket failed with error : {}", WSAGetLastError());
 	}
 
-	SetNonBlocking(ServerSocket, true);
+	//SetNonBlocking(ServerSocket, true);
 
 	Bind();
 	Listen();
@@ -54,27 +54,26 @@ void CServer::Run()
 		for (int32_t i = 0; i < NumSockets; i++)
 		{
 			SOCKET InSocket = ServerSet.fd_array[i];
+
+			// Check to see if this is new connection
 			if (InSocket == ServerSocket)
 			{
+				// Accept the connection to server
 				SOCKET ClientSocket = accept(ServerSocket, nullptr, nullptr);
 				if (ClientSocket != INVALID_SOCKET)
 				{
+					FD_SET(ClientSocket, &ServerSet);
+
+					// Add the client to the client map and send welcome message
 					OnConnected(ClientSocket);
 				}
 			}
 			else
 			{
+				// Receives messages from connected clients and echo the messages to all the connected clients 
 				GetMessages(InSocket);
 			}
 		}
-
-		//SOCKET NewSocket = Accept();
-		//if (NewSocket != INVALID_SOCKET)
-		//{
-		//	OnConnected(NewSocket);
-		//	GetMessages(NewSocket);
-		//	GetUserInput();
-		//}
 	}
 
 	std::cout << "Shutting down server" << std::endl;
@@ -131,7 +130,7 @@ SOCKET CServer::Accept()
 void CServer::Send(SOCKET InSocket, const char* InBuffer)
 {
 	int32_t Result = send(InSocket, InBuffer, sizeof(InBuffer), 0);
-	if (Result != 0)
+	if (Result == SOCKET_ERROR)
 	{
 		spdlog::error("send failed with error : {}", WSAGetLastError());
 	}
@@ -171,9 +170,9 @@ void CServer::GetUserInput()
 
 void CServer::GetMessages(SOCKET InSocket)
 {
-	char Buffer[1024];
+	char Buffer[4096];
 	memset(Buffer, 0, sizeof(Buffer));
-	int32_t Bytes = Receive(InSocket, Buffer);
+	int32_t Bytes = recv(InSocket, Buffer, sizeof(Buffer), 0);
 	if (Bytes <= 0)
 	{
 		closesocket(InSocket);
@@ -181,17 +180,39 @@ void CServer::GetMessages(SOCKET InSocket)
 	}
 	else
 	{
+		auto Client = ClientMap.find(InSocket);
+
 		for (int32_t i = 0; i < ServerSet.fd_count; i++)
 		{
 			SOCKET OutSocket = ServerSet.fd_array[i];
-			if (OutSocket != ServerSocket && OutSocket != InSocket)
+			//if (OutSocket != ServerSocket && OutSocket != InSocket)	// This check fails for some reason :(
 			{
 				std::string Command;
 				Command = Buffer;
-				if (strcmp(Command.c_str(), "@set_username") == 0)
+
+				// This is really bad way to evaluate user commands, but it works
+				// Set the users name 
+				if (strcmp(Command.c_str(), "@set_name") == 0)
 				{
+					const char* Name = Command.c_str() + 9;
+
+					// Tell all clients that a user has changed their name
+					std::string OriginalName = Client->second.Name;
+					std::string AllMessage =  OriginalName + " changed their name to " + Name;
+					SendMessageToAllClients(AllMessage.c_str());
+
+					// Send a reply to the client that changed their name
+					std::string Message = OriginalName + " you changed your name to " + Name;
+					SendMessageToClient(Client->first, Message.c_str());
+					
 					// Change the users name
-					SetUsername(InSocket, Buffer);
+					SetUsername(InSocket, Name);
+				}
+
+				// Send a goodbye message to the client that quit the server
+				if (strcmp(Command.c_str(), "@quit") == 0)
+				{
+
 				}
 
 				for (auto& Client : ClientMap)
@@ -234,9 +255,9 @@ void CServer::OnConnected(SOCKET InSocket)
 	{
 		std::cout << "Client connected to server" << std::endl;
 
-		std::string Username = "JohnSmith";
+		std::string Username = "JohnSmith_";
 		AddClient(InSocket, Username.c_str());
 		std::string WelcomeMessage = "Hello " + Username;
-		SendMessageToClient(InSocket, WelcomeMessage.c_str());
+		send(InSocket, WelcomeMessage.c_str(), WelcomeMessage.size(), 0);
 	}
 }

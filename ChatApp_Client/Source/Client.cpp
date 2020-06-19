@@ -38,18 +38,18 @@ void CClient::Init()
 
 void CClient::Run()
 {
+	char Buffer[4096];
+	memset(Buffer, 0, sizeof(Buffer));
+	std::string Message;
+
 	while (bIsConnected)
 	{
-		char Buffer[1024];
-		memset(Buffer, 0, sizeof(Buffer));
-		std::string Message;
-
-		std::cout << ">";
+		std::cout << "> ";
 		getline(std::cin, Message);
 		if (Message.size() > 0)
 		{
 			GetLocalInput(Message);
-			send(ClientSocket, Message.c_str(), (int32_t)Message.length(), 0);
+			send(ClientSocket, Message.c_str(), (int32_t)Message.size() + 1, 0);
 		}
 
 		int32_t Bytes = recv(ClientSocket, Buffer, sizeof(Buffer), 0);

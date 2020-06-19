@@ -20,3 +20,6 @@
 #include <string>
 #include <queue>
 #include <map>
+#include <thread>
+
+#include "LocalUserInput.h"
