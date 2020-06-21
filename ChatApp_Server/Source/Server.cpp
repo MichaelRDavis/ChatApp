@@ -185,7 +185,7 @@ void CServer::GetMessages(SOCKET InSocket)
 		for (int32_t i = 0; i < ServerSet.fd_count; i++)
 		{
 			SOCKET OutSocket = ServerSet.fd_array[i];
-			//if (OutSocket != ServerSocket && OutSocket != InSocket)	// This check fails for some reason :(
+			if (OutSocket != ServerSocket && OutSocket != InSocket)	// This check fails for some reason :(
 			{
 				std::string Command;
 				Command = Buffer;
