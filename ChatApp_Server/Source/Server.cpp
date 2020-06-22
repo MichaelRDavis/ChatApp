@@ -212,7 +212,7 @@ void CServer::GetMessages(SOCKET InSocket)
 				// Send a goodbye message to the client that quit the server
 				if (strcmp(Command.c_str(), "@quit") == 0)
 				{
-
+					SendMessageToClient(Client->first, "Goodbye");
 				}
 
 				for (auto& Client : ClientMap)
