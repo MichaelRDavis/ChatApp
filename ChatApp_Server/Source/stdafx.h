@@ -21,5 +21,6 @@
 #include <queue>
 #include <map>
 #include <thread>
+#include <sstream>
 
 #include "LocalUserInput.h"

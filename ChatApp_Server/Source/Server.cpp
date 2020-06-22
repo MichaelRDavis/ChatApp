@@ -50,10 +50,11 @@ void CServer::Run()
 	{
 		std::cout << "Listen for incoming connections" << std::endl;
 
-		int32_t NumSockets = select(0, &ServerSet, nullptr, nullptr, nullptr);
+		fd_set ServerCopy = ServerSet;
+		int32_t NumSockets = select(0, &ServerCopy, nullptr, nullptr, nullptr);
 		for (int32_t i = 0; i < NumSockets; i++)
 		{
-			SOCKET InSocket = ServerSet.fd_array[i];
+			SOCKET InSocket = ServerCopy.fd_array[i];
 
 			// Check to see if this is new connection
 			if (InSocket == ServerSocket)
@@ -62,7 +63,7 @@ void CServer::Run()
 				SOCKET ClientSocket = accept(ServerSocket, nullptr, nullptr);
 				if (ClientSocket != INVALID_SOCKET)
 				{
-					FD_SET(ClientSocket, &ServerSet);
+					FD_SET(ClientSocket, &ServerCopy);
 
 					// Add the client to the client map and send welcome message
 					OnConnected(ClientSocket);
@@ -71,7 +72,7 @@ void CServer::Run()
 			else
 			{
 				// Receives messages from connected clients and echo the messages to all the connected clients 
-				GetMessages(InSocket);
+				GetMessages(InSocket, ServerCopy);
 			}
 		}
 	}
@@ -168,7 +169,7 @@ void CServer::GetUserInput()
 	}
 }
 
-void CServer::GetMessages(SOCKET InSocket)
+void CServer::GetMessages(SOCKET InSocket, fd_set InSet)
 {
 	char Buffer[4096];
 	memset(Buffer, 0, sizeof(Buffer));
@@ -176,15 +177,15 @@ void CServer::GetMessages(SOCKET InSocket)
 	if (Bytes <= 0)
 	{
 		closesocket(InSocket);
-		FD_CLR(InSocket, &ServerSet);
+		FD_CLR(InSocket, &InSet);
 	}
 	else
 	{
 		auto Client = ClientMap.find(InSocket);
 
-		for (int32_t i = 0; i < ServerSet.fd_count; i++)
+		for (int32_t i = 0; i < InSet.fd_count; i++)
 		{
-			SOCKET OutSocket = ServerSet.fd_array[i];
+			SOCKET OutSocket = InSet.fd_array[i];
 			if (OutSocket != ServerSocket && OutSocket != InSocket)	// This check fails for some reason :(
 			{
 				std::string Command;
@@ -215,9 +216,14 @@ void CServer::GetMessages(SOCKET InSocket)
 					SendMessageToClient(Client->first, "Goodbye");
 				}
 
+				// Send messages to every client connected to this server
 				for (auto& Client : ClientMap)
 				{
-					send(OutSocket, Buffer, Bytes, 0);
+					std::ostringstream Stream;
+					Stream << Client.second.Name << ": " << Buffer << "\r\n";
+					std::string Messages = Stream.str();
+
+					send(OutSocket, Messages.c_str(), Messages.size() + 1, 0);
 				}
 			}
 		}
