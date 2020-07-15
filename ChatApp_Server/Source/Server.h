@@ -55,7 +55,7 @@ private:
 	void GetUserInput();
 
 	/** Get messages sent to the server */
-	void GetMessages(SOCKET InSocket, fd_set InSet);
+	void GetMessages(SOCKET InSocket);
 
 	/** Sends messages to all clients connected on this server */
 	void SendMessageToAllClients(const char* InBuffer);
